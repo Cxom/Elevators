@@ -1,0 +1,4 @@
+name: Elevators
+version: 0.0
+main: me.cxom.elevators.Elevators
+description: A Minecraft elevator plugin
