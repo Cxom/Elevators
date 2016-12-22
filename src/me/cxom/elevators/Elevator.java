@@ -83,10 +83,6 @@ public class Elevator{
 		player.setInvulnerable(true);
 		TitleAPI.sendTitle(player, 5, 20, 15, "", ChatColor.RED + start.getName());
 		
-		Location destination = elevator.clone();
-		destination.subtract(dx, 0, dz);
-		destination.setY(end.getY());
-		
 		new BukkitRunnable(){
 			
 			int i = floors.indexOf(start);
@@ -100,6 +96,9 @@ public class Elevator{
 				Floor f = floors.get(i); 
 				TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.RED + f.getName());
 				if (i == j){
+					Location destination = player.getLocation().clone();
+					destination.subtract(dx, 0, dz);
+					destination.setY(end.getY());
 					player.setInvulnerable(false);
 					player.teleport(destination);
 					player.sendMessage(ChatColor.AQUA + "You arrived!");
