@@ -10,6 +10,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -35,8 +36,7 @@ public class Elevators extends JavaPlugin implements Listener{
 	public void onEnable(){
 		Bukkit.getServer().getPluginManager().registerEvents(this, this);
 		Elevators.plugin = this;
-		elevators.put("CAHPAHK", TestElevator.cahpahk);
-		elevators.put("PROM ADMIN", TestElevator.promAdmin);
+		ConfigurationSerialization.registerClass(Elevator.Floor.class);
 	}
 
 	public static Plugin getPlugin(){

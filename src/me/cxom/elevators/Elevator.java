@@ -7,8 +7,8 @@ import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -21,13 +21,11 @@ public class Elevator{
 	private final Location shaft;
 	private final double dx;
 	private final double dz;
-
-	public Inventory buttonPanel;
 	
 	private final List<Floor> floors;
 	private final Map<String, Floor> nameToFloor = new HashMap<>();
 	
-	public class Floor{
+	public static class Floor implements ConfigurationSerializable{
 		private String name;
 		private final int y;
 		
@@ -49,6 +47,18 @@ public class Elevator{
 			if (! (o instanceof Floor)) return false;
 			Floor f = (Floor) o;
 			return name == f.getName() && y == f.getY();
+		}
+
+		@Override
+		public Map<String, Object> serialize() {
+			Map<String, Object> values = new HashMap<>();
+			values.put("name", name);
+			values.put("y", y);
+			return values;
+		}
+		
+		public static Floor deserialize(Map<String, Object> args){
+			return new Floor((String) args.get("name"), (int) args.get("y"));
 		}
 	}
 	
