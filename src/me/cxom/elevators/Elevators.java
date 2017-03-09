@@ -49,11 +49,6 @@ public class Elevators extends JavaPlugin implements Listener{
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-		if (label.equals("elevatorride")){
-			TestElevator.ride((Player) sender);
-		}else if (label.equals("elevatorinv")){
-			TestElevator.inv((Player) sender);
-		}
 		return true;
 	}
 	
@@ -101,8 +96,11 @@ public class Elevators extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void onMenuClick(InventoryClickEvent e){
+		if (e.getClickedInventory() == null) return;
 		if (! e.getInventory().getName().startsWith("Button Panel")) return;
-		if (e.getCurrentItem().getType() == Material.AIR) return;
+		if (! (e.getCurrentItem() != null
+			   && e.getCurrentItem().hasItemMeta()
+			   && e.getCurrentItem().getItemMeta().hasLore())) return;
 		
 		String id = e.getInventory().getName().substring(e.getInventory().getName().indexOf('-') + 2);
 		String elevatorName = id.substring(0, id.lastIndexOf(' '));
@@ -128,8 +126,9 @@ public class Elevators extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void onMenuDrag(InventoryDragEvent e){
-		if(e.getInventory().getName().equals("Button Panel"))
+		if(e.getInventory().getName().equals("Button Panel")){
 			e.setCancelled(true);
+		}
 	}
 	
 }
