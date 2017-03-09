@@ -37,6 +37,7 @@ public class Elevators extends JavaPlugin implements Listener{
 		Bukkit.getServer().getPluginManager().registerEvents(this, this);
 		Elevators.plugin = this;
 		ConfigurationSerialization.registerClass(Elevator.Floor.class);
+		ConfigurationSerialization.registerClass(Elevator.class);
 	}
 
 	public static Plugin getPlugin(){

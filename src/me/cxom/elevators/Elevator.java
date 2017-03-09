@@ -1,5 +1,6 @@
 package me.cxom.elevators;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,10 +15,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.connorlinfoot.titleapi.TitleAPI;
 
-public class Elevator{
+public class Elevator implements ConfigurationSerializable{
 
 	private final Location elevator;
-	@SuppressWarnings("unused")
 	private final Location shaft;
 	private final double dx;
 	private final double dz;
@@ -119,6 +119,31 @@ public class Elevator{
 				}
 			}
 		}.runTaskTimer(Elevators.getPlugin(), 40, 30);
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> values = new HashMap<>();
+		values.put("elevator", elevator.serialize());
+		values.put("shaft", shaft.serialize());
+		List<Map<String, Object>> floorValues = new ArrayList<>();
+		for (Floor floor : floors){
+			floorValues.add(floor.serialize());
+		}
+		values.put("floors", floorValues);
+		return values;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static Elevator deserialize(Map<String, Object> args){
+		Location elevatorLoc = Location.deserialize((Map<String, Object>) args.get("elevator"));
+		Location shaftLoc = Location.deserialize((Map<String, Object>) args.get("shaft"));
+		List<Map<String, Object>> floorValues = (List<Map<String, Object>>) args.get("floors");
+		List<Floor> floors = new ArrayList<>();
+		for (Map<String, Object> floorValue : floorValues){
+			floors.add(Floor.deserialize(floorValue));
+		}
+		return new Elevator(elevatorLoc, shaftLoc, floors);
 	}
 		
 }
