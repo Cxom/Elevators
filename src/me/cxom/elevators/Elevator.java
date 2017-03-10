@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,7 +30,7 @@ public class Elevator implements ConfigurationSerializable{
 		private String name;
 		private final int y;
 		
-		private Floor(String name, int y){
+		public Floor(String name, int y){
 			this.name = name;
 			this.y = y;
 		}
@@ -70,7 +71,7 @@ public class Elevator implements ConfigurationSerializable{
 		return floors;
 	}
 	
-	private Elevator(Location elevator, Location shaft, List<Floor> floors){
+	public Elevator(Location elevator, Location shaft, List<Floor> floors){
 		this.elevator = elevator;
 		this.shaft = shaft;
 		this.dx = elevator.getX() - shaft.getX();
