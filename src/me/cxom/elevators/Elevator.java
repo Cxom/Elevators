@@ -30,7 +30,7 @@ public class Elevator implements ConfigurationSerializable{
 	public static class Floor implements ConfigurationSerializable{
 		private String name;
 		private final int y;
-		private final int number;
+		private int number;
 		
 		public Floor(String name, int y, int number){
 			this.name = name;
@@ -48,6 +48,10 @@ public class Elevator implements ConfigurationSerializable{
 		
 		public int getNumber(){
 			return number;
+		}
+		
+		void setNumber(int number){
+			this.number = number;
 		}
 		
 		@Override
@@ -69,13 +73,21 @@ public class Elevator implements ConfigurationSerializable{
 		public static Floor deserialize(Map<String, Object> args){
 			return new Floor((String) args.get("name"), (int) args.get("y"), (int) args.get("number"));
 		}
+
+		public int getIndex() {
+			return number - 1;
+		}
 	}
 	
 	public Floor getFloor(String name){
 		return floorMap.get(name);
 	}
 	
-	public Floor getFloor(int index){
+	public Floor getFloorByNumber(int floorNumber){
+		return getFloorByIndex(floorNumber - 1);
+	}
+	
+	public Floor getFloorByIndex(int index) {
 		return floorMap.get(floorNameMap.get(index));
 	}
 	
@@ -114,7 +126,7 @@ public class Elevator implements ConfigurationSerializable{
 			public void run(){
 				player.playSound(elevator, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 				i += d;
-				Floor f = getFloor(i); 
+				Floor f = getFloorByNumber(i);
 				TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.RED + f.getName());
 				if (i == j){
 					Location destination = player.getLocation().clone();

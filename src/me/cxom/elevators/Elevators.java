@@ -84,7 +84,7 @@ public class Elevators extends JavaPlugin implements Listener{
 						buttonPanel.addItem(is);
 					}
 					
-					int currentFloorNumber = floor.getNumber();
+					int currentFloorNumber = floor.getIndex();
 					ItemStack button = buttonPanel.getItem(currentFloorNumber);
 					ItemStack buttonSelected = button.clone();
 					buttonSelected.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
@@ -109,7 +109,7 @@ public class Elevators extends JavaPlugin implements Listener{
 		
 		Elevator el = ElevatorManager.getElevator(elevatorName);
 		Floor start = el.getFloor(floorName);
-		Floor end = el.getFloor(e.getSlot());
+		Floor end = el.getFloorByIndex(e.getSlot());
 		
 		Player player = (Player) e.getWhoClicked();
 		
@@ -127,7 +127,7 @@ public class Elevators extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void onMenuDrag(InventoryDragEvent e){
-		if(e.getInventory().getName().equals("Button Panel")){
+		if(e.getInventory().getName().equals("Panel")){
 			e.setCancelled(true);
 		}
 	}
