@@ -1,6 +1,7 @@
 package me.cxom.elevators;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +24,18 @@ public class Elevator implements ConfigurationSerializable{
 	private final double dx;
 	private final double dz;
 	
-	private final List<Floor> floors;
-	private final Map<String, Floor> nameToFloor = new HashMap<>();
+	private final List<String> floorNameMap = new ArrayList<>();
+	private final Map<String, Floor> floorMap = new HashMap<>();
 	
 	public static class Floor implements ConfigurationSerializable{
 		private String name;
 		private final int y;
+		private final int number;
 		
-		public Floor(String name, int y){
+		public Floor(String name, int y, int number){
 			this.name = name;
 			this.y = y;
+			this.number = number;
 		}
 		
 		public String getName(){
@@ -41,6 +44,10 @@ public class Elevator implements ConfigurationSerializable{
 		
 		public int getY(){
 			return y;
+		}
+		
+		public int getNumber(){
+			return number;
 		}
 		
 		@Override
@@ -55,20 +62,25 @@ public class Elevator implements ConfigurationSerializable{
 			Map<String, Object> values = new HashMap<>();
 			values.put("name", name);
 			values.put("y", y);
+			values.put("number", number);
 			return values;
 		}
 		
 		public static Floor deserialize(Map<String, Object> args){
-			return new Floor((String) args.get("name"), (int) args.get("y"));
+			return new Floor((String) args.get("name"), (int) args.get("y"), (int) args.get("number"));
 		}
 	}
 	
 	public Floor getFloor(String name){
-		return nameToFloor.get(name);
+		return floorMap.get(name);
 	}
 	
-	public List<Floor> getFloors(){
-		return floors;
+	public Floor getFloor(int index){
+		return floorMap.get(floorNameMap.get(index));
+	}
+	
+	public Collection<Floor> getFloors(){
+		return floorMap.values();
 	}
 	
 	public Elevator(Location elevator, Location shaft, List<Floor> floors){
@@ -76,10 +88,8 @@ public class Elevator implements ConfigurationSerializable{
 		this.shaft = shaft;
 		this.dx = elevator.getX() - shaft.getX();
 		this.dz = elevator.getZ() - shaft.getZ();
-		this.floors = floors;
-		for(Floor floor : floors){
-			this.nameToFloor.put(floor.getName(), floor);
-		}
+		floors.forEach(floor -> {this.floorNameMap.add(floor.getName());
+								 this.floorMap.put(floor.getName(), floor);});
 	}
 	
 	public void ride(Floor start, Floor end, Player player){
@@ -96,15 +106,15 @@ public class Elevator implements ConfigurationSerializable{
 		
 		new BukkitRunnable(){
 			
-			int i = floors.indexOf(start);
-			int j = floors.indexOf(end);
+			int i = start.getNumber();
+			int j = end.getNumber();
 			int d = j > i ? 1 : -1;
 			
 			@Override
 			public void run(){
 				player.playSound(elevator, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 				i += d;
-				Floor f = floors.get(i); 
+				Floor f = getFloor(i); 
 				TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.RED + f.getName());
 				if (i == j){
 					Location destination = player.getLocation().clone();
@@ -127,10 +137,7 @@ public class Elevator implements ConfigurationSerializable{
 		Map<String, Object> values = new HashMap<>();
 		values.put("elevator", elevator.serialize());
 		values.put("shaft", shaft.serialize());
-		List<Map<String, Object>> floorValues = new ArrayList<>();
-		for (Floor floor : floors){
-			floorValues.add(floor.serialize());
-		}
+		List<Map<String, Object>> floorValues = floorMap.values().stream().map(Floor::serialize).collect(Collectors.toList());
 		values.put("floors", floorValues);
 		return values;
 	}

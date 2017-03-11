@@ -74,7 +74,8 @@ public class Elevators extends JavaPlugin implements Listener{
 			if(el != null){
 				Floor floor = el.getFloor(floorName);
 				if(floor != null){
-					Inventory buttonPanel = Bukkit.createInventory(null, (int) Math.ceil(el.getFloors().size() / 9d) * 9, "Button Panel - " + sign.getLine(0));
+					
+					Inventory buttonPanel = Bukkit.createInventory(null, (int) Math.ceil(el.getFloors().size() / 9d) * 9, "Panel - " + sign.getLine(0));
 					for(Floor f : el.getFloors()){
 						ItemStack is = new ItemStack(Material.PAPER);
 						ItemMeta im = is.getItemMeta();
@@ -83,11 +84,11 @@ public class Elevators extends JavaPlugin implements Listener{
 						buttonPanel.addItem(is);
 					}
 					
-					int i = el.getFloors().indexOf(floor);
-					ItemStack button = buttonPanel.getItem(i);
+					int currentFloorNumber = floor.getNumber();
+					ItemStack button = buttonPanel.getItem(currentFloorNumber);
 					ItemStack buttonSelected = button.clone();
 					buttonSelected.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-					buttonPanel.setItem(i, buttonSelected);
+					buttonPanel.setItem(currentFloorNumber, buttonSelected);
 					
 					e.getPlayer().openInventory(buttonPanel);
 				}
@@ -98,10 +99,9 @@ public class Elevators extends JavaPlugin implements Listener{
 	@EventHandler
 	public void onMenuClick(InventoryClickEvent e){
 		if (e.getClickedInventory() == null) return;
-		if (! e.getInventory().getName().startsWith("Button Panel")) return;
+		if (! e.getInventory().getName().startsWith("Panel")) return;
 		if (! (e.getCurrentItem() != null
-			   && e.getCurrentItem().hasItemMeta()
-			   && e.getCurrentItem().getItemMeta().hasLore())) return;
+			   && e.getCurrentItem().hasItemMeta())) return;
 		
 		String id = e.getInventory().getName().substring(e.getInventory().getName().indexOf('-') + 2);
 		String elevatorName = id.substring(0, id.lastIndexOf(' '));
@@ -109,7 +109,7 @@ public class Elevators extends JavaPlugin implements Listener{
 		
 		Elevator el = Elevators.getElevator(elevatorName);
 		Floor start = el.getFloor(floorName);
-		Floor end = el.getFloors().get(e.getSlot());
+		Floor end = el.getFloor(e.getSlot());
 		
 		Player player = (Player) e.getWhoClicked();
 		
