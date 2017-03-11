@@ -1,8 +1,5 @@
 package me.cxom.elevators;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -26,11 +23,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.cxom.elevators.Elevator.Floor;
+import me.cxom.elevators.configuration.ElevatorManager;
 
 public class Elevators extends JavaPlugin implements Listener{
 
 	private static Plugin plugin;
-	private static Map<String, Elevator> elevators = new HashMap<>();
 
 	@Override
 	public void onEnable(){
@@ -38,14 +35,18 @@ public class Elevators extends JavaPlugin implements Listener{
 		Elevators.plugin = this;
 		ConfigurationSerialization.registerClass(Elevator.Floor.class);
 		ConfigurationSerialization.registerClass(Elevator.class);
+		ElevatorManager.loadElevators();
 	}
 
-	public static Plugin getPlugin(){
-		return plugin;
+	@Override
+	public void onDisable(){
+		ElevatorManager.saveAll();
+		ElevatorManager.clear();
+		plugin = null;
 	}
 	
-	public static Elevator getElevator(String name){
-		return elevators.get(name);
+	public static Plugin getPlugin(){
+		return plugin;
 	}
 	
 	@Override
@@ -70,11 +71,10 @@ public class Elevators extends JavaPlugin implements Listener{
 				return;
 			};
 			
-			Elevator el = Elevators.getElevator(name);
+			Elevator el = ElevatorManager.getElevator(name);
 			if(el != null){
 				Floor floor = el.getFloor(floorName);
 				if(floor != null){
-					
 					Inventory buttonPanel = Bukkit.createInventory(null, (int) Math.ceil(el.getFloors().size() / 9d) * 9, "Panel - " + sign.getLine(0));
 					for(Floor f : el.getFloors()){
 						ItemStack is = new ItemStack(Material.PAPER);
@@ -107,7 +107,7 @@ public class Elevators extends JavaPlugin implements Listener{
 		String elevatorName = id.substring(0, id.lastIndexOf(' '));
 		String floorName = id.substring(id.indexOf(':') + 1);
 		
-		Elevator el = Elevators.getElevator(elevatorName);
+		Elevator el = ElevatorManager.getElevator(elevatorName);
 		Floor start = el.getFloor(floorName);
 		Floor end = el.getFloor(e.getSlot());
 		
