@@ -4,3 +4,7 @@ main: me.cxom.elevators.Elevators
 description: A Minecraft elevator plugin
 
 depend: [TitleAPI]
+
+commands:
+    elevator:
+        usage: /elevator <create>

@@ -51,6 +51,12 @@ public class Elevators extends JavaPlugin implements Listener{
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
+		if (! (sender instanceof Player)) return true;
+		Player player = (Player) sender;
+		if (args.length < 1) return false;
+		if (args[0].equalsIgnoreCase("create")){
+			new ElevatorCreator(player);
+		}
 		return true;
 	}
 	
