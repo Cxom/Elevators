@@ -1,7 +1,9 @@
 package me.cxom.elevators;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -17,18 +19,34 @@ import me.cxom.elevators.configuration.ElevatorManager;
 
 public class ElevatorCreator implements Listener{
 
+	private static Set<UUID> editors = new HashSet<>();
+	
+	public static boolean isEditing(Player player){
+		return editors.contains(player.getUniqueId());
+	}
+	
+	private static Set<String> elevatorsBeingEdited = new HashSet<>();
+	
+	public static boolean isBeingEdited(String elevatorName){
+		return elevatorsBeingEdited.contains(elevatorName);
+	}
+	
 	private UUID creator;
 	
 	private String name;
+	private String oldName;
 	
 	private Location elevatorLoc;
 	private Location shaftLoc;
 	private List<Floor> floors = new ArrayList<>();
 	
+	private boolean editing = false;
+	private boolean changes = false;
 	private boolean quit = false;
 	
 	public ElevatorCreator(Player player){
 		this.creator = player.getUniqueId();
+		editors.add(this.creator);
 		displayHelp(player);
 		Bukkit.getServer().getPluginManager().registerEvents(this, Elevators.getPlugin());
 	}
@@ -36,9 +54,12 @@ public class ElevatorCreator implements Listener{
 	public ElevatorCreator(Player creator, String name, Location elevatorLoc, Location shaftLoc, List<Floor> floors){
 		this(creator);
 		this.name = name;
+		this.oldName = name;
 		this.elevatorLoc = elevatorLoc;
 		this.shaftLoc = shaftLoc;
 		this.floors = floors;
+		this.editing = true;
+		elevatorsBeingEdited.add(oldName);
 	}
 	
 	@EventHandler
@@ -52,16 +73,23 @@ public class ElevatorCreator implements Listener{
 					player.sendMessage(ChatColor.RED + "You need to specify a value for the elevator name. Try typing 'name <name>'.");
 				} else {
 					name = args[1];
+					if (ElevatorManager.getElevator(args[1]) != null){
+						player.sendMessage(ChatColor.RED + "There is already an elevator with this name. Please choose something else or change that one.");
+						break;
+					}
 					player.sendMessage(ChatColor.GREEN + "Set the elevator name to '" + name + "'.");
+					changes = true;
 				}
 				break;
 			case "elevator":
 				elevatorLoc = e.getPlayer().getLocation().getBlock().getLocation();
 				player.sendMessage(ChatColor.GREEN + "Elevator location updated to " + formatLocation(elevatorLoc) + ".");
+				changes = true;
 				break;
 			case "shaft":
 				shaftLoc = e.getPlayer().getLocation().getBlock().getLocation();
 				player.sendMessage(ChatColor.GREEN + "Shaft location updated to " + formatLocation(shaftLoc) + ".");
+				changes = true;
 				break;
 			case "floor":
 				if (args.length < 2){
@@ -85,6 +113,7 @@ public class ElevatorCreator implements Listener{
 				}
 				floors.add(floorIndex, new Floor(floorName, yValue));
 				player.sendMessage(ChatColor.GREEN + "Added floor with name '" + floorName + "' at y-value " + yValue + ".");
+				changes = true;
 				break;
 			case "delfloor":
 				if (args.length < 2){
@@ -104,6 +133,7 @@ public class ElevatorCreator implements Listener{
 				}
 				Floor removed = floors.remove(floorIndex2);
 				player.sendMessage(ChatColor.YELLOW + "Deleted floor #" + (floorIndex2 + 1) + " with name '" + removed.getName() + "' at y-value " + removed.getY() + ".");
+				changes = true;
 				break;
 			case "help":
 				displayHelp(player);
@@ -127,18 +157,26 @@ public class ElevatorCreator implements Listener{
 					break;
 				} else {
 					finish();
-					player.sendMessage(ChatColor.GREEN + "The elevator was added successfully! Exiting Elevator Creation.");
+					if (editing) {
+						player.sendMessage(ChatColor.GREEN + "The elevator was editing successfully! Exiting Elevator Creation.");
+					} else {
+						player.sendMessage(ChatColor.GREEN + "The elevator was added successfully! Exiting Elevator Creation.");
+					}
 					quit();
 					player.sendMessage(ChatColor.GOLD + "Exited Elevator Creation");
 				}
 				break;
 			case "quit":
-				if (quit){
+				if (quit || (editing && !changes)){
 					quit();
 					player.sendMessage(ChatColor.GOLD + "Exited Elevator Creation");
 				} else {
 					if (isValid()){
-						player.sendMessage(ChatColor.GREEN + "The elevator is valid for 'finish'-ing, are you sure you want to leave? (Type quit again to leave.)");
+						if (editing){
+							player.sendMessage(ChatColor.GREEN + "We seem to think you've made changes, are you sure you want to leave? (Type quit again to leave.)");
+						} else {
+							player.sendMessage(ChatColor.GREEN + "The elevator is valid for 'finish'-ing, are you sure you want to leave? (Type quit again to leave.)");
+						}
 					} else {
 						player.sendMessage(ChatColor.YELLOW + "Are you sure you want to leave? Type 'quit' again to leave.");
 					}
@@ -182,10 +220,15 @@ public class ElevatorCreator implements Listener{
 	}
 	
 	private void finish(){
+		if (editing && !name.equals(oldName)){
+			ElevatorManager.deleteElevator(oldName);
+		}
 		ElevatorManager.addElevator(name, new Elevator(elevatorLoc, shaftLoc, floors));
 	}
 	
 	private void quit(){
+		editors.remove(creator);
+		elevatorsBeingEdited.remove(oldName);
 		creator = null;
 		elevatorLoc = null;
 		shaftLoc = null;

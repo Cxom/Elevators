@@ -7,4 +7,4 @@ depend: [TitleAPI]
 
 commands:
     elevator:
-        usage: /elevator <create>
+        usage: /elevator <<help|create>|<edit|delete> <elevator>>

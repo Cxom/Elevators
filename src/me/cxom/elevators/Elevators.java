@@ -56,6 +56,37 @@ public class Elevators extends JavaPlugin implements Listener{
 		if (args.length < 1) return false;
 		if (args[0].equalsIgnoreCase("create")){
 			new ElevatorCreator(player);
+		} else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("delete")){
+			if (args.length < 2){
+				player.sendMessage(ChatColor.RED + "You need to specify the name of the elevator. Try running '/elevator <edit|delete> <elevator-name>'.");
+				return true;
+			}
+			Elevator elevator = ElevatorManager.getElevator(args[1]);
+			if (elevator == null){
+				player.sendMessage(ChatColor.RED + "You didn't specify a valid elevator name. Try referencing the sign if you can and don't "
+						+ "remember the name. It " + ChatColor.ITALIC + "is" + ChatColor.RESET + ChatColor.RED + " case sensitive.");
+				return true;
+			}
+			if (args[0].equalsIgnoreCase("edit")){
+				if (ElevatorCreator.isEditing(player)){
+					player.sendMessage(ChatColor.RED + "You can only edit one elevator at a time! Please 'finish' or 'quit' editing the one you are working on first.");
+				} else if (ElevatorCreator.isBeingEdited(args[1])) {
+					player.sendMessage(ChatColor.YELLOW + "Someone else is already editing this elevator. Only one person can edit an elevator at a time.");
+				}
+				elevator.edit(player, args[1]);
+			} else {
+				//elevator delete
+				if (args.length < 3){
+					player.sendMessage(ChatColor.YELLOW + "Please type the name of the elevator twice when running the command to confirm that you want to delete.");
+					return true;
+				} else if (!args[1].equals(args[2])) {
+					player.sendMessage(ChatColor.RED + "The first elevator name you typed in does not match the second. The elevator has not been deleted.");
+				}
+				ElevatorManager.deleteElevator(args[1]);
+				player.sendMessage(ChatColor.GOLD + "The elevator '" + args[1] + "' has been deleted.");
+			}
+		} else {
+			return false;
 		}
 		return true;
 	}

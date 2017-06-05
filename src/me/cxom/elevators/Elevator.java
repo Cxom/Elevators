@@ -151,5 +151,13 @@ public class Elevator implements ConfigurationSerializable{
 		}
 		return new Elevator(elevatorLoc, shaftLoc, floors);
 	}
+		
+	public void edit(Player player, String name){
+		List<Floor> floors = new ArrayList<>();
+		for (String floorName : floorList) {
+			floors.add(floorMap.get(floorName));
+		}
+		new ElevatorCreator(player, name, elevator, shaft, floors);
+	}
 	
 }

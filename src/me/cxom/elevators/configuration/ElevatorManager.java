@@ -95,4 +95,10 @@ public class ElevatorManager {
 		saveElevator(name, elevator);
 	}
 	
+	public static void deleteElevator(String name){
+		elevators.remove(name);
+		File elevatorf = new File(elevatorsFolder, name + ".yml");
+		elevatorf.delete();
+	}
+	
 }
