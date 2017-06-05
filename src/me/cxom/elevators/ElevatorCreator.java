@@ -70,52 +70,40 @@ public class ElevatorCreator implements Listener{
 				}
 				String floorName = args[1];
 				int yValue = player.getLocation().getBlockY();
-				int floorNumber = floors.size() + 1;
+				int floorIndex = floors.size();
 				if (args.length >= 3){
 					try {
-						floorNumber = Integer.parseInt(args[2]);
+						floorIndex = Integer.parseInt(args[2]) - 1;
 					} catch (NumberFormatException ex){
 						player.sendMessage(ChatColor.RED + "Expected a number specifying where to put the floor. Try typing 'floor <floor-name> [floor-#]'.");
 						break;
 					}
 				}
-				if (floorNumber < 1 || floors.size() + 1 < floorNumber){
+				if (floorIndex < 0 || floorIndex > floors.size()){
 					player.sendMessage(ChatColor.RED + "The floor number must be between 1 and the number of floors + 1 (currently " + floors.size() + " + 1 = " + (floors.size() + 1) + ") inclusive.");
 					break;
 				}
-				int floorIndex = floorNumber - 1;
-				if (floorIndex != floors.size()){
-					for (int i = floorIndex; i < floors.size(); i++){
-						Floor floor = floors.get(i);
-						floor.setNumber(floor.getNumber() + 1);
-					}
-				}
-				floors.add(new Floor(floorName, yValue, floorNumber));
-				player.sendMessage(ChatColor.GREEN + "Added floor #" + floorNumber + " with name '" + floorName + "' at y-value " + yValue + ".");
+				floors.add(floorIndex, new Floor(floorName, yValue));
+				player.sendMessage(ChatColor.GREEN + "Added floor with name '" + floorName + "' at y-value " + yValue + ".");
 				break;
 			case "delfloor":
 				if (args.length < 2){
 					player.sendMessage(ChatColor.RED + "You need to specify a value for the floor number to delete. Try typing 'delfloor <floor-#>'.");
 					break;
 				}
-				int floorNumber2 = -1;
+				int floorIndex2 = -1;
 				try {
-					floorNumber2 = Integer.parseInt(args[1]);
+					floorIndex2 = Integer.parseInt(args[1]) - 1; // reset count to be from 0
 				} catch (NumberFormatException ex){
 					player.sendMessage(ChatColor.RED + "Expected a number specifying which floor to delete. Try typing 'delfloor <floor-#>'.");
 					break;
 				}
-				if (floorNumber2 < 1 || floors.size() < floorNumber2){
+				if (floorIndex2 < 0 || floors.size() < floorIndex2){
 					player.sendMessage(ChatColor.RED + "The floor number to delete must be between 1 and the number of floors (currently " + floors.size() + ") inclusive.");
 					break;
 				}
-				int floorIndex2 = floorNumber2 - 1; // reset count to be from 0
 				Floor removed = floors.remove(floorIndex2);
-				for (int j = floorIndex2; j < floors.size(); j++){
-					Floor floor = floors.get(j);
-					floor.setNumber(floor.getNumber() - 1);
-				}
-				player.sendMessage(ChatColor.YELLOW + "Deleted floor #" + floorNumber2 + " with name '" + removed.getName() + "' at y-value " + removed.getY() + ".");
+				player.sendMessage(ChatColor.YELLOW + "Deleted floor #" + (floorIndex2 + 1) + " with name '" + removed.getName() + "' at y-value " + removed.getY() + ".");
 				break;
 			case "help":
 				displayHelp(player);
@@ -126,8 +114,9 @@ public class ElevatorCreator implements Listener{
 				player.sendMessage(ChatColor.GREEN + "Elevator Location: " + (elevatorLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN + formatLocation(elevatorLoc)));
 				player.sendMessage(ChatColor.GREEN + "Shaft Location: " + (shaftLoc == null ? ChatColor.RED + "Not set" : ChatColor.GREEN + formatLocation(shaftLoc)));
 				player.sendMessage(ChatColor.GREEN + "Floors: " + (floors.isEmpty() ? ChatColor.RED + "None defined!" : ""));
+				int i = 1;
 				for (Floor floor : floors){
-					player.sendMessage(ChatColor.GREEN + " Floor #" + floor.getNumber() + ": " + floor.getName() + " - Y-value at " + floor.getY());
+					player.sendMessage(ChatColor.GREEN + " Floor #" + i++ + ": " + floor.getName() + " - Y-value at " + floor.getY());
 				}
 				player.sendMessage(ChatColor.GREEN + "This elevator is " + (!isValid() ? ChatColor.RED + "not ready" + ChatColor.GREEN : "ready") + " for 'finish'-ing.");
 				player.sendMessage(ChatColor.GREEN + "--------------------------------------");
@@ -138,15 +127,15 @@ public class ElevatorCreator implements Listener{
 					break;
 				} else {
 					finish();
-					player.sendMessage(ChatColor.GREEN + "The elevator was added successfully! Exitting Elevator Creation.");
+					player.sendMessage(ChatColor.GREEN + "The elevator was added successfully! Exiting Elevator Creation.");
 					quit();
-					player.sendMessage(ChatColor.GOLD + "Exitted Elevator Creation");
+					player.sendMessage(ChatColor.GOLD + "Exited Elevator Creation");
 				}
 				break;
 			case "quit":
 				if (quit){
 					quit();
-					player.sendMessage(ChatColor.GOLD + "Exitted Elevator Creation");
+					player.sendMessage(ChatColor.GOLD + "Exited Elevator Creation");
 				} else {
 					if (isValid()){
 						player.sendMessage(ChatColor.GREEN + "The elevator is valid for 'finish'-ing, are you sure you want to leave? (Type quit again to leave.)");

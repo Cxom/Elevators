@@ -1,11 +1,9 @@
 package me.cxom.elevators;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -24,18 +22,16 @@ public class Elevator implements ConfigurationSerializable{
 	private final double dx;
 	private final double dz;
 	
-	private final List<String> floorNameMap = new ArrayList<>();
+	private final List<String> floorList = new ArrayList<>();
 	private final Map<String, Floor> floorMap = new HashMap<>();
 	
 	public static class Floor implements ConfigurationSerializable{
 		private String name;
 		private final int y;
-		private int number;
 		
-		public Floor(String name, int y, int number){
+		public Floor(String name, int y){
 			this.name = name;
 			this.y = y;
-			this.number = number;
 		}
 		
 		public String getName(){
@@ -44,14 +40,6 @@ public class Elevator implements ConfigurationSerializable{
 		
 		public int getY(){
 			return y;
-		}
-		
-		public int getNumber(){
-			return number;
-		}
-		
-		void setNumber(int number){
-			this.number = number;
 		}
 		
 		@Override
@@ -66,33 +54,29 @@ public class Elevator implements ConfigurationSerializable{
 			Map<String, Object> values = new HashMap<>();
 			values.put("name", name);
 			values.put("y", y);
-			values.put("number", number);
 			return values;
 		}
 		
 		public static Floor deserialize(Map<String, Object> args){
-			return new Floor((String) args.get("name"), (int) args.get("y"), (int) args.get("number"));
+			return new Floor((String) args.get("name"), (int) args.get("y"));
 		}
 
-		public int getIndex() {
-			return number - 1;
-		}
 	}
 	
-	public Floor getFloor(String name){
-		return floorMap.get(name);
+	public Floor getFloor(String floorName){
+		return floorMap.get(floorName);
 	}
 	
-	public Floor getFloorByNumber(int floorNumber){
-		return getFloorByIndex(floorNumber - 1);
+	public Floor getFloor(int index) {
+		return floorMap.get(floorList.get(index));
 	}
 	
-	public Floor getFloorByIndex(int index) {
-		return floorMap.get(floorNameMap.get(index));
+	public int getFloorIndex(String floorName){
+		return floorList.indexOf(floorName);
 	}
 	
-	public Collection<Floor> getFloors(){
-		return floorMap.values();
+	public List<String> getFloorNames(){
+		return floorList;
 	}
 	
 	public Elevator(Location elevator, Location shaft, List<Floor> floors){
@@ -100,11 +84,11 @@ public class Elevator implements ConfigurationSerializable{
 		this.shaft = shaft;
 		this.dx = elevator.getX() - shaft.getX();
 		this.dz = elevator.getZ() - shaft.getZ();
-		floors.forEach(floor -> {this.floorNameMap.add(floor.getName());
+		floors.forEach(floor -> {this.floorList.add(floor.getName());
 								 this.floorMap.put(floor.getName(), floor);});
 	}
 	
-	public void ride(Floor start, Floor end, Player player){
+	public void ride(int startFloorIndex, int endFloorIndex, Player player){
 		
 		player.addPotionEffect(PotionEffectType.INVISIBILITY.createEffect(50000, 1), false);
 		
@@ -114,32 +98,31 @@ public class Elevator implements ConfigurationSerializable{
 		player.teleport(elevator);
 		player.playSound(elevator, Sound.BLOCK_SHULKER_BOX_CLOSE, 1, 1);
 		player.setInvulnerable(true);
-		TitleAPI.sendTitle(player, 5, 20, 15, "", ChatColor.RED + start.getName());
+		TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.AQUA + getFloor(startFloorIndex).getName());
 		
 		new BukkitRunnable(){
 			
-			int i = start.getNumber();
-			int j = end.getNumber();
-			int d = j > i ? 1 : -1;
+			int currentFloorIndex = startFloorIndex;
+			int direction = endFloorIndex > currentFloorIndex ? 1 : -1;
 			
 			@Override
 			public void run(){
 				player.playSound(elevator, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-				i += d;
-				Floor f = getFloorByNumber(i);
-				TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.RED + f.getName());
-				if (i == j){
+				currentFloorIndex += direction;
+				if (currentFloorIndex == endFloorIndex){
 					Location destination = player.getLocation().clone();
 					destination.subtract(dx, 0, dz);
-					destination.setY(end.getY());
+					destination.setY(getFloor(endFloorIndex).getY());
 					player.setInvulnerable(false);
 					player.teleport(destination);
-					player.sendMessage(ChatColor.AQUA + "You arrived!");
+					TitleAPI.sendTitle(player, 15, 15, 15, "", "Arrived: " + ChatColor.AQUA + getFloor(currentFloorIndex).getName());
 					player.playSound(destination, Sound.BLOCK_SHULKER_BOX_OPEN, 1, 1);
 					player.playSound(destination, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 2, 3);
 					player.removePotionEffect(PotionEffectType.INVISIBILITY);
 					this.cancel();
+					return;
 				}
+				TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.RED + getFloor(currentFloorIndex).getName());
 			}
 		}.runTaskTimer(Elevators.getPlugin(), 40, 30);
 	}
@@ -149,8 +132,11 @@ public class Elevator implements ConfigurationSerializable{
 		Map<String, Object> values = new HashMap<>();
 		values.put("elevator", elevator.serialize());
 		values.put("shaft", shaft.serialize());
-		List<Map<String, Object>> floorValues = floorMap.values().stream().map(Floor::serialize).collect(Collectors.toList());
-		values.put("floors", floorValues);
+		List<Map<String, Object>> serializedFloors = new ArrayList<>();
+		for (String floorName : floorList){
+			serializedFloors.add(floorMap.get(floorName).serialize());
+		}
+		values.put("floors", serializedFloors);
 		return values;
 	}
 	
@@ -158,12 +144,12 @@ public class Elevator implements ConfigurationSerializable{
 	public static Elevator deserialize(Map<String, Object> args){
 		Location elevatorLoc = Location.deserialize((Map<String, Object>) args.get("elevator"));
 		Location shaftLoc = Location.deserialize((Map<String, Object>) args.get("shaft"));
-		List<Map<String, Object>> floorValues = (List<Map<String, Object>>) args.get("floors");
+		List<Map<String, Object>> serializedFloors = (List<Map<String, Object>>) args.get("floors");
 		List<Floor> floors = new ArrayList<>();
-		for (Map<String, Object> floorValue : floorValues){
-			floors.add(Floor.deserialize(floorValue));
+		for (Map<String, Object> serializedFloor : serializedFloors){
+			floors.add(Floor.deserialize(serializedFloor));
 		}
 		return new Elevator(elevatorLoc, shaftLoc, floors);
 	}
-		
+	
 }

@@ -68,33 +68,35 @@ public class Elevators extends JavaPlugin implements Listener{
 			
 			Sign sign = (Sign) e.getClickedBlock().getRelative(BlockFace.UP).getState();
 			String id = sign.getLine(0);
-			String name, floorName;
-			try{	
-				name = id.substring(0, id.lastIndexOf(' '));
-				floorName = id.substring(id.lastIndexOf(':') + 1);
-			}catch(IllegalArgumentException ex){
-				e.getPlayer().sendMessage("Something wrong with this elevator?");
-				return;
-			};
+			String elevatorName, floorName;
 			
-			Elevator el = ElevatorManager.getElevator(name);
+			elevatorName = id.substring(0, id.lastIndexOf(' '));
+			Elevator el = ElevatorManager.getElevator(elevatorName);
 			if(el != null){
+				
+				try{	
+					floorName = id.substring(id.lastIndexOf(':') + 1);
+				}catch(IllegalArgumentException ex){
+					e.getPlayer().sendMessage("Something wrong with this elevator?");
+					return;
+				};
+				
 				Floor floor = el.getFloor(floorName);
 				if(floor != null){
-					Inventory buttonPanel = Bukkit.createInventory(null, (int) Math.ceil(el.getFloors().size() / 9d) * 9, "Panel - " + sign.getLine(0));
-					for(Floor f : el.getFloors()){
+					Inventory buttonPanel = Bukkit.createInventory(null, (int) Math.ceil(el.getFloorNames().size() / 9d) * 9, "Panel - " + sign.getLine(0));
+					for(String fn : el.getFloorNames()){
 						ItemStack is = new ItemStack(Material.PAPER);
 						ItemMeta im = is.getItemMeta();
-						im.setDisplayName(ChatColor.AQUA + f.getName());
+						im.setDisplayName(ChatColor.AQUA + fn);
 						is.setItemMeta(im);
 						buttonPanel.addItem(is);
 					}
 					
-					int currentFloorNumber = floor.getIndex();
-					ItemStack button = buttonPanel.getItem(currentFloorNumber);
+					int currentFloorIndex = el.getFloorIndex(floorName);
+					ItemStack button = buttonPanel.getItem(currentFloorIndex);
 					ItemStack buttonSelected = button.clone();
 					buttonSelected.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-					buttonPanel.setItem(currentFloorNumber, buttonSelected);
+					buttonPanel.setItem(currentFloorIndex, buttonSelected);
 					
 					e.getPlayer().openInventory(buttonPanel);
 				}
@@ -114,21 +116,21 @@ public class Elevators extends JavaPlugin implements Listener{
 		String floorName = id.substring(id.indexOf(':') + 1);
 		
 		Elevator el = ElevatorManager.getElevator(elevatorName);
-		Floor start = el.getFloor(floorName);
-		Floor end = el.getFloorByIndex(e.getSlot());
+		int startIndex = el.getFloorIndex(floorName);
+		int endIndex = e.getSlot();
 		
 		Player player = (Player) e.getWhoClicked();
 		
-		if (start == null){
+		if (startIndex <  0 || startIndex >= el.getFloorNames().size()){
 			player.sendMessage("What floor are you on!?");
 			e.setCancelled(true);
 			return;
-		}else if(start.equals(end)){
+		}else if(startIndex == endIndex){
 			player.sendMessage(ChatColor.RED + "You are already on that floor!");
 			e.setCancelled(true);
 			return;
 		}
-		el.ride(start, end, player);
+		el.ride(startIndex, endIndex, player);
 	}
 	
 	@EventHandler
