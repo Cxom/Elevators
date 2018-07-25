@@ -220,15 +220,10 @@ public class ElevatorCreator implements Listener{
 	}
 	
 	private void finish(){
-		if (editing && !name.equals(oldName)){
-			ElevatorManager.deleteElevator(oldName);
-		}
 		ElevatorManager.addElevator(name, new Elevator(elevatorLoc, shaftLoc, floors));
 	}
 	
 	private void quit(){
-		editors.remove(creator);
-		elevatorsBeingEdited.remove(oldName);
 		creator = null;
 		elevatorLoc = null;
 		shaftLoc = null;

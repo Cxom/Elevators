@@ -56,6 +56,8 @@ public class Elevators extends JavaPlugin implements Listener{
 		if (args.length < 1) return false;
 		if (args[0].equalsIgnoreCase("create")){
 			new ElevatorCreator(player);
+		//} else if (args[0].equalsIgnoreCase("help")){
+		// TODO help command	
 		} else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("delete")){
 			if (args.length < 2){
 				player.sendMessage(ChatColor.RED + "You need to specify the name of the elevator. Try running '/elevator <edit|delete> <elevator-name>'.");
@@ -81,9 +83,11 @@ public class Elevators extends JavaPlugin implements Listener{
 					return true;
 				} else if (!args[1].equals(args[2])) {
 					player.sendMessage(ChatColor.RED + "The first elevator name you typed in does not match the second. The elevator has not been deleted.");
+					return true;
+				} else {
+					ElevatorManager.deleteElevator(args[1]);
+					player.sendMessage(ChatColor.GOLD + "The elevator '" + args[1] + "' has been deleted.");
 				}
-				ElevatorManager.deleteElevator(args[1]);
-				player.sendMessage(ChatColor.GOLD + "The elevator '" + args[1] + "' has been deleted.");
 			}
 		} else {
 			return false;

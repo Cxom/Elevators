@@ -1,9 +1,7 @@
 name: Elevators
-version: 0.0
+version: 0.1.5
 main: me.cxom.elevators.Elevators
 description: A Minecraft elevator plugin
-
-depend: [TitleAPI]
 
 commands:
     elevator:

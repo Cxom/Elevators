@@ -5,15 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import com.connorlinfoot.titleapi.TitleAPI;
 
 public class Elevator implements ConfigurationSerializable{
 
@@ -88,9 +86,17 @@ public class Elevator implements ConfigurationSerializable{
 								 this.floorMap.put(floor.getName(), floor);});
 	}
 	
+	private void hidePlayer(Player player) {
+		Bukkit.getOnlinePlayers().forEach(p -> p.hidePlayer(Elevators.getPlugin(), player));
+	}
+	
+	private void showPlayer(Player player) {
+		Bukkit.getOnlinePlayers().forEach(p -> p.showPlayer(Elevators.getPlugin(), player));
+	}
+	
 	public void ride(int startFloorIndex, int endFloorIndex, Player player){
 		
-		player.addPotionEffect(PotionEffectType.INVISIBILITY.createEffect(50000, 1), false);
+		hidePlayer(player);
 		
 		Location elevator = player.getLocation();
 		elevator.add(dx, 0, dz);
@@ -98,7 +104,7 @@ public class Elevator implements ConfigurationSerializable{
 		player.teleport(elevator);
 		player.playSound(elevator, Sound.BLOCK_SHULKER_BOX_CLOSE, 1, 1);
 		player.setInvulnerable(true);
-		TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.AQUA + getFloor(startFloorIndex).getName());
+		player.sendTitle("", ChatColor.AQUA + getFloor(startFloorIndex).getName(), 10, 10, 10);
 		
 		new BukkitRunnable(){
 			
@@ -115,14 +121,14 @@ public class Elevator implements ConfigurationSerializable{
 					destination.setY(getFloor(endFloorIndex).getY());
 					player.setInvulnerable(false);
 					player.teleport(destination);
-					TitleAPI.sendTitle(player, 15, 15, 15, "", "Arrived: " + ChatColor.AQUA + getFloor(currentFloorIndex).getName());
+					player.sendTitle("", "Arrived: " + ChatColor.AQUA + getFloor(currentFloorIndex).getName(), 15, 15, 15);
 					player.playSound(destination, Sound.BLOCK_SHULKER_BOX_OPEN, 1, 1);
 					player.playSound(destination, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 2, 3);
-					player.removePotionEffect(PotionEffectType.INVISIBILITY);
+					showPlayer(player);
 					this.cancel();
 					return;
 				}
-				TitleAPI.sendTitle(player, 10, 10, 10, "", ChatColor.RED + getFloor(currentFloorIndex).getName());
+				player.sendTitle("", ChatColor.RED + getFloor(currentFloorIndex).getName(), 10, 10, 10);
 			}
 		}.runTaskTimer(Elevators.getPlugin(), 40, 30);
 	}
