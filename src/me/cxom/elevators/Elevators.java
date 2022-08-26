@@ -99,7 +99,7 @@ public class Elevators extends JavaPlugin implements Listener{
 	public void onElevatorEnter(PlayerInteractEvent e){
 		if (e.getAction() == Action.RIGHT_CLICK_BLOCK
 			&& e.getClickedBlock().getType() == Material.STONE_BUTTON
-			&& e.getClickedBlock().getRelative(BlockFace.UP).getType() == Material.WALL_SIGN){
+			&& e.getClickedBlock().getRelative(BlockFace.UP).getType() == Material.OAK_WALL_SIGN){
 			
 			Sign sign = (Sign) e.getClickedBlock().getRelative(BlockFace.UP).getState();
 			String id = sign.getLine(0);
@@ -142,11 +142,11 @@ public class Elevators extends JavaPlugin implements Listener{
 	@EventHandler
 	public void onMenuClick(InventoryClickEvent e){
 		if (e.getClickedInventory() == null) return;
-		if (! e.getInventory().getName().startsWith("Panel")) return;
+		if (! e.getView().getTitle().startsWith("Panel")) return;
 		if (! (e.getCurrentItem() != null
 			   && e.getCurrentItem().hasItemMeta())) return;
 		
-		String id = e.getInventory().getName().substring(e.getInventory().getName().indexOf('-') + 2);
+		String id = e.getView().getTitle().substring(e.getView().getTitle().indexOf('-') + 2);
 		String elevatorName = id.substring(0, id.lastIndexOf(' '));
 		String floorName = id.substring(id.indexOf(':') + 1);
 		
@@ -170,7 +170,7 @@ public class Elevators extends JavaPlugin implements Listener{
 	
 	@EventHandler
 	public void onMenuDrag(InventoryDragEvent e){
-		if(e.getInventory().getName().equals("Panel")){
+		if(e.getView().getTitle().equals("Panel")){
 			e.setCancelled(true);
 		}
 	}
