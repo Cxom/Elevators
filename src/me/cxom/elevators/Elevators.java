@@ -58,6 +58,10 @@ public class Elevators extends JavaPlugin implements Listener{
 			new ElevatorCreator(player);
 		//} else if (args[0].equalsIgnoreCase("help")){
 		// TODO help command	
+		} else if (args[0].equalsIgnoreCase("list")) {
+			for (String elevatorName : ElevatorManager.getElevatorNameList()) {
+				player.sendMessage(elevatorName);
+			}
 		} else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("delete")){
 			if (args.length < 2){
 				player.sendMessage(ChatColor.RED + "You need to specify the name of the elevator. Try running '/elevator <edit|delete> <elevator-name>'.");

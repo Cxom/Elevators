@@ -6,9 +6,9 @@ description: A Minecraft elevator plugin
 
 commands:
     elevator:
-        usage: /elevator <<help|create>|<edit|delete> <elevator>>
-        permission: elevator.command
+        usage: /elevator <<help|create|list>|<edit|delete> <elevator>>
+        permission: elevators.command
         permission-message: You don't have permission to edit, create, and delete elevators!
 
 permissions:
-    elevator.command
+    elevators.command

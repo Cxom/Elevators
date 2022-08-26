@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -99,6 +100,10 @@ public class ElevatorManager {
 		elevators.remove(name);
 		File elevatorf = new File(elevatorsFolder, name + ".yml");
 		elevatorf.delete();
+	}
+
+	public static List<String> getElevatorNameList() {
+		return List.copyOf(elevators.keySet());
 	}
 	
 }
